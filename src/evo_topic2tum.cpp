@@ -8,6 +8,7 @@
 #include "rclcpp/rclcpp.hpp"
 #include "geometry_msgs/msg/pose_stamped.hpp"
 #include "nav_msgs/msg/odometry.hpp"
+#include "geometry_msgs/msg/pose_with_covariance_stamped.hpp"
 
 using std::placeholders::_1;
 using namespace std::chrono_literals;
@@ -24,7 +25,7 @@ public:
         foutC1.open("./robot_pose.txt");
         foutC2.open("./ground_truth_pose.txt");
         //robot_pose from tf
-        subscription_robot_pose_ = this->create_subscription<geometry_msgs::msg::PoseStamped>(
+        subscription_robot_pose_ = this->create_subscription<geometry_msgs::msg::PoseWithCovarianceStamped>(//geometry_msgs::msg::PoseStamped
             "/robot_pose", 10, std::bind(&EvoTopic2Tum::callback1, this, _1));
         //ground truth from gazebo 
         subscription_ground_truth_pose_ = this->create_subscription<nav_msgs::msg::Odometry>(
@@ -32,17 +33,17 @@ public:
     }
 
 private:
-    void callback1(const geometry_msgs::msg::PoseStamped & pos) const
+    void callback1(const geometry_msgs::msg::PoseWithCovarianceStamped & pos) const
     {
         //receive robot_pose from topic
         foutC1 << pos.header.stamp.sec<<"."<<pos.header.stamp.nanosec << " ";
-        float x = pos.pose.position.x;
-        float y = pos.pose.position.y;
-        float z = pos.pose.position.z;
-        float qx = pos.pose.orientation.x;
-        float qy = pos.pose.orientation.y;
-        float qz = pos.pose.orientation.z;
-        float qw = pos.pose.orientation.w;
+        float x = pos.pose.pose.position.x;
+        float y = pos.pose.pose.position.y;
+        float z = pos.pose.pose.position.z;
+        float qx = pos.pose.pose.orientation.x;
+        float qy = pos.pose.pose.orientation.y;
+        float qz = pos.pose.pose.orientation.z;
+        float qw = pos.pose.pose.orientation.w;
         RCLCPP_INFO(this->get_logger(), "robot pose: %f %f %f %f %f %f %f",x,y,z,qx,qy,qz,qw);
         foutC1 << x <<" " << y << " " << z << " " << qx << " " << qy << " " << qz << " " << qw << std::endl;
 
@@ -61,7 +62,7 @@ private:
         RCLCPP_INFO(this->get_logger(), "ground truth: %f %f %f %f %f %f %f",x2,y2,z2,qx2,qy2,qz2,qw2);
         foutC2 << x2 <<" " << y2 << " " << z2 << " " << qx2 << " " << qy2 << " " << qz2 << " " << qw2 << std::endl;
     }
-    rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr subscription_robot_pose_;
+    rclcpp::Subscription<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr subscription_robot_pose_;
     rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr subscription_ground_truth_pose_;
 
 
